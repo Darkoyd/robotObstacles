@@ -2,6 +2,7 @@ package uniandes.lym.robot.control;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Stack;
 
 import javax.swing.SwingUtilities;
 
@@ -19,6 +20,11 @@ public class Interpreter {
 	private RobotWorldDec world;
 
 	private boolean inRoutine = false;
+
+	ArrayList<String> varNames = new ArrayList<>();
+	ArrayList<Integer> varValues = new ArrayList<>();
+
+	Stack<String> opStack;
 
 	public Interpreter() {
 	}
@@ -45,6 +51,14 @@ public class Interpreter {
 
 	}
 
+	private void assignVar(int n, String name) {
+		for (int i = 0; i < varNames.size(); i++) {
+			if (name.equals(varNames.get(i))) {
+				varValues.add(i, n);
+			}
+		}
+	}
+
 	/**
 	 * Processes a sequence of commands. A command is a letter followed by a ";" The
 	 * command can be: M: moves forward R: turns right
@@ -58,9 +72,6 @@ public class Interpreter {
 		int n;
 		boolean ok = true;
 		n = input.length();
-
-		ArrayList<String> varNames = new ArrayList<>();
-		ArrayList<Integer> varValues = new ArrayList<>();
 
 		i = 0;
 		try {
@@ -90,7 +101,11 @@ public class Interpreter {
 						}
 							break;
 					case 'B':
-					if (!inRoutine) {
+					if (input.equals("BEGIN")) {
+						opStack =  new Stack<>();
+						ok = !ok;
+					}
+					else if (!inRoutine) {
 						world.putBalloons(1);
 						output.append("putBalloon \n");
 					}
@@ -121,6 +136,25 @@ public class Interpreter {
 						output.append("Vars added");
 						ok = !ok;
 						break;
+					case 'a':
+						if (input.startsWith("assignVar")) {
+							String[] params = input.replace("assignVar", "").replace("(", "").replace(")", "").split(",");
+							try {
+								int val = Integer.parseInt(params[0]);
+								opStack.push("assignVar(" + val + ","+params[1]+")");
+							} catch (NumberFormatException e) {
+								throw new Error("Invalid parameter " + params[0] + " is not an int");
+							}
+							ok = !ok;
+						}
+							break;
+					case 'E':
+						if (input.equals("END")) {
+							ok = !ok;
+							inRoutine = !inRoutine;
+							//TODO Popear stack
+						}
+							break;
 					default:
 						output.append(" Unrecognized command:  " + input.charAt(i));
 						ok = false;
