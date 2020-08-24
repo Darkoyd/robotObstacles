@@ -31,7 +31,7 @@ public class Interpreter {
 
 	/**
 	 * Creates a new interpreter for a given world
-	 * 
+	 *
 	 * @param world
 	 */
 
@@ -42,13 +42,12 @@ public class Interpreter {
 
 	/**
 	 * sets a the world
-	 * 
+	 *
 	 * @param world
 	 */
 
 	public void setWorld(RobotWorld m) {
 		world = (RobotWorldDec) m;
-
 	}
 
 	private void assignVar(int n, String name) {
@@ -57,6 +56,29 @@ public class Interpreter {
 				varValues.add(i, n);
 			}
 		}
+	}
+
+	private void move(int n) {
+		world.moveForward(n);
+	}
+
+	private boolean facing(String o) {
+		boolean res = false;
+		switch (o) {
+			case "north":
+				res = world.facingNorth();
+					break;
+			case "east":
+				res = world.facingEast();
+					break;
+			case "south":
+				res = world.facingSouth();
+			case "west":
+				res = world.facingWest();
+			default:
+				break;
+		}
+		return res;
 	}
 
 	/**
@@ -153,6 +175,25 @@ public class Interpreter {
 							ok = !ok;
 							inRoutine = !inRoutine;
 							//TODO Popear stack
+						}
+							break;
+					case 's':
+						if (input.equals("skip")) {
+							ok = !ok;
+						}
+							break;
+					case 'm':
+						if (input.startsWith("move")) {
+							String param = input.replace("move(", "").replace(")", "");
+							opStack.push("move(" + param + ")");
+							ok = !ok;
+						}
+							break;
+					case 'f':
+						if (input.startsWith("facing")) {
+							String param = input.replace("facing(", "").replace(")", "");
+							opStack.push("facing(" + param + ")");
+							ok = !ok;
 						}
 							break;
 					default:
